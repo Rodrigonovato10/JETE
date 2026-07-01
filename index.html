@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escala de Trabalho J&T Express</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              jtvermelho: "#D81E20",
+              jtamarelo: "#FFF35C",
+              jtcinza: "#E0E0E0",
+              jtazul: "#2483C5",
+              jtpreto: "#222222",
+            },
+            fontFamily: { sans: ["Arial", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .text-shadow-sm {
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .folga-texto {
+          color: #b91c1c;
+          font-weight: bold;
+          font-size: 0.9rem;
+        }
+        .ferias-texto {
+          color: #6b7280;
+          font-weight: bold;
+          font-size: 0.85rem;
+        }
+        .saca-texto {
+          color: #7c3aed;
+          font-weight: bold;
+          font-size: 0.85rem;
+        }
+        .apoio-texto {
+          color: #d97706;
+          font-weight: bold;
+          font-size: 0.85rem;
+        }
+        .vaga-texto {
+          color: #dc2626;
+          font-weight: bold;
+          font-size: 0.8rem;
+          font-style: italic;
+        }
+        .manual-texto {
+          color: #2483c5;
+          font-weight: bold;
+          font-size: 0.85rem;
+        }
+        .folga-linha {
+          background-color: #fef2f2 !important;
+        }
+        .table-container {
+          overflow-x: auto;
+        }
+      }
+      /* Destaque da coluna do dia selecionado */
+      .col-destaque-header {
+        background-color: #d81e20 !important;
+        color: #ffffff !important;
+        box-shadow: inset 0 0 0 2px #fff35c;
+      }
+      .col-destaque-cel {
+        background-color: #fff9db !important;
+        box-shadow: inset 0 0 0 2px #fff35c;
+      }
+
+      /* Colunas fixas (sticky) para facilitar leitura no celular ao rolar a tabela na horizontal */
+      #tabelaEscala th.col-fixa-nome,
+      #tabelaEscala td.col-fixa-nome {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background-color: #ffffff;
+        min-width: 110px;
+        max-width: 150px;
+      }
+      #tabelaEscala thead th.col-fixa-nome {
+        background-color: #f3f4f6;
+        z-index: 15;
+      }
+      #tabelaEscala th.col-fixa-posicao,
+      #tabelaEscala td.col-fixa-posicao {
+        position: sticky;
+        left: 110px;
+        z-index: 4;
+        background-color: #ffffff;
+        min-width: 110px;
+        max-width: 150px;
+        border-left: 2px solid #d1d5db;
+      }
+      #tabelaEscala thead th.col-fixa-posicao {
+        background-color: #f3f4f6;
+        z-index: 14;
+      }
+      @media (min-width: 640px) {
+        #tabelaEscala th.col-fixa-nome,
+        #tabelaEscala td.col-fixa-nome {
+          min-width: 170px;
+          max-width: 220px;
+        }
+        #tabelaEscala th.col-fixa-posicao,
+        #tabelaEscala td.col-fixa-posicao {
+          left: 170px;
+          min-width: 150px;
+          max-width: 200px;
+        }
+      }
+
+      /* Linha de separação visual entre blocos (posições / fixos / DSR) */
+      .linha-separador td {
+        border: none;
+        background: transparent;
+        height: 10px;
+        padding: 0;
+      }
+
+      /* Cabeçalho do bloco "DSR de hoje" */
+      .linha-dsr-cabecalho td {
+        background-color: #fff35c !important;
+        font-weight: bold;
+        text-align: center;
+        color: #7a5c00;
+        letter-spacing: 0.05em;
+      }
+
+      /* Texto da posição na coluna fixa */
+      .posicao-hoje-texto {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      /* Responsividade: reduz fonte/padding em telas pequenas */
+      @media (max-width: 639px) {
+        #tabelaEscala th,
+        #tabelaEscala td {
+          font-size: 0.7rem;
+          padding: 6px 6px;
+        }
+        #tabelaEscala h1 {
+          font-size: 1.5rem;
+        }
+      }
+
+      .dica-scroll {
+        display: none;
+      }
+      @media (max-width: 639px) {
+        .dica-scroll {
+          display: flex;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 font-sans">
+    <div class="max-w-7xl mx-auto p-4 md:p-6">
+      <!-- Configurações -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">
+          Configurações da Escala
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Data da Escala</label
+            >
+            <input
+              type="date"
+              id="dataEscala"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+              value="2026-06-30"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Equipe / Setor</label
+            >
+            <input
+              type="text"
+              id="setor"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+              value="T1"
+            />
+          </div>
+        </div>
+        <button
+          id="gerarEscala"
+          class="bg-jtvermelho hover:bg-red-700 text-white font-bold py-2 px-6 rounded flex items-center gap-2 transition"
+        >
+          <i class="fa fa-refresh"></i> Gerar Escala
+        </button>
+      </div>
+
+      <!-- Gestão de funcionários -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">Funcionários</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4 items-end">
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Nome</label
+            >
+            <input
+              type="text"
+              id="novoNome"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+              placeholder="Nome completo"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tipo</label
+            >
+            <select
+              id="novoTipo"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="rotativo">Rotativo (revezamento)</option>
+              <option value="fixo">Fixo (posição própria)</option>
+              <option value="ferias">Férias / Afastado</option>
+            </select>
+          </div>
+          <div>
+            <button
+              id="btnAdicionar"
+              class="w-full bg-jtazul hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              <i class="fa fa-plus"></i> Adicionar
+            </button>
+          </div>
+        </div>
+        <div id="posicaoFixaWrapper" class="hidden mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Posição fixa</label
+          >
+          <input
+            type="text"
+            id="novaPosicaoFixa"
+            class="w-full sm:w-1/3 border border-gray-300 rounded px-3 py-2"
+            placeholder="Ex: DEVOLUÇÃO"
+          />
+        </div>
+        <div class="table-container">
+          <table class="min-w-full border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-100 border-b">
+                <th class="py-2 px-3 border text-left">Nome</th>
+                <th class="py-2 px-3 border text-left">Tipo</th>
+                <th class="py-2 px-3 border text-left">Posição fixa</th>
+                <th class="py-2 px-3 border text-center">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="corpoFuncionarios"></tbody>
+          </table>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+          Os dados ficam salvos no navegador (localStorage). Use "Remover" para
+          desligamentos.
+        </p>
+      </div>
+
+      <!-- Posições -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">Posições rotativas</h2>
+        <p class="text-xs text-gray-500 mb-3">
+          São as vagas disputadas no revezamento. Se a equipe ganhar/perder uma
+          posição (ex: abrir uma 2ª "ESTEIRA / MEIO"), adicione ou remova aqui.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+          <input
+            type="text"
+            id="novaPosicao"
+            class="flex-1 border border-gray-300 rounded px-3 py-2"
+            placeholder="Nome da posição, ex: ESTEIRA / MEIO F9"
+          />
+          <button
+            id="btnAdicionarPosicao"
+            class="bg-jtazul hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            <i class="fa fa-plus"></i> Adicionar posição
+          </button>
+        </div>
+        <div id="listaPosicoes" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- Folgas da semana -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">
+          Folgas fixas da semana
+        </h2>
+        <p class="text-xs text-gray-500 mb-3">
+          Marque quem folga em cada dia. Domingo não é gerado automaticamente
+          pelo revezamento — marque manualmente no campo abaixo.
+        </p>
+        <div
+          id="folgasGrid"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4"
+        ></div>
+
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <h3 class="text-sm font-bold text-gray-800 mb-1">
+            Folgas de Domingo (manual)
+          </h3>
+          <p class="text-xs text-gray-500 mb-2">
+            Domingo não tem revezamento automático. Marque aqui quem folga neste
+            domingo — pode marcar vários de uma vez.
+          </p>
+          <div
+            id="folgasDomingoGrid"
+            class="border rounded p-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Observações / Restrições -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">
+          Observações (restrições de posição)
+        </h2>
+        <p class="text-xs text-gray-500 mb-3">
+          Use para casos como "Carlos hoje não vai para B1". A pessoa segue
+          disponível para revezar nas outras posições, só fica bloqueada para
+          essa específica.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-4 items-end">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Funcionário</label
+            >
+            <select
+              id="obsFuncionario"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            ></select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Posição bloqueada</label
+            >
+            <select
+              id="obsPosicao"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            ></select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Dia</label
+            >
+            <select
+              id="obsDia"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="todos">Todos os dias</option>
+              <option value="segunda">Segunda</option>
+              <option value="terca">Terça</option>
+              <option value="quarta">Quarta</option>
+              <option value="quinta">Quinta</option>
+              <option value="sexta">Sexta</option>
+              <option value="sabado">Sábado</option>
+            </select>
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Observação (texto livre)</label
+            >
+            <input
+              type="text"
+              id="obsTexto"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+              placeholder="Opcional"
+            />
+          </div>
+          <div>
+            <button
+              id="btnAdicionarObs"
+              class="w-full bg-jtazul hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              <i class="fa fa-plus"></i> Adicionar
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="min-w-full border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-100 border-b">
+                <th class="py-2 px-3 border text-left">Funcionário</th>
+                <th class="py-2 px-3 border text-left">Posição bloqueada</th>
+                <th class="py-2 px-3 border text-left">Dia</th>
+                <th class="py-2 px-3 border text-left">Observação</th>
+                <th class="py-2 px-3 border text-center">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="corpoObservacoes"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Atribuição manual -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">
+          Atribuição manual (forçar pessoa numa posição)
+        </h2>
+        <p class="text-xs text-gray-500 mb-3">
+          Define que uma pessoa específica fica numa posição específica,
+          sobrepondo o revezamento automático. Ela é retirada do sorteio das
+          outras posições naquele dia.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4 items-end">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Funcionário</label
+            >
+            <select
+              id="atribFuncionario"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            ></select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Posição</label
+            >
+            <select
+              id="atribPosicao"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            ></select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Dia</label
+            >
+            <select
+              id="atribDia"
+              class="w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="todos">Todos os dias</option>
+              <option value="segunda">Segunda</option>
+              <option value="terca">Terça</option>
+              <option value="quarta">Quarta</option>
+              <option value="quinta">Quinta</option>
+              <option value="sexta">Sexta</option>
+              <option value="sabado">Sábado</option>
+            </select>
+          </div>
+          <div>
+            <button
+              id="btnAdicionarAtrib"
+              class="w-full bg-jtazul hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              <i class="fa fa-plus"></i> Adicionar
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="min-w-full border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-100 border-b">
+                <th class="py-2 px-3 border text-left">Funcionário</th>
+                <th class="py-2 px-3 border text-left">Posição</th>
+                <th class="py-2 px-3 border text-left">Dia</th>
+                <th class="py-2 px-3 border text-center">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="corpoAtribuicoes"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabela da escala -->
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="bg-jtvermelho text-white p-4 text-center">
+          <h1
+            class="text-3xl md:text-4xl font-bold uppercase tracking-wider text-shadow-sm"
+          >
+            J&T EXPRESS
+          </h1>
+          <h2 class="text-xl md:text-2xl mt-2">
+            ESCALA DE TRABALHO <span id="mostraSetor">T1</span>
+          </h2>
+          <div class="flex flex-wrap justify-center gap-4 mt-2 text-lg">
+            <span id="mostraData">30/06/2026</span>
+            <span id="mostraDiaSemana">terça-feira</span>
+          </div>
+        </div>
+        <div
+          class="dica-scroll items-center gap-2 px-3 pt-2 text-xs text-gray-500"
+        >
+          <i class="fa fa-arrows-h"></i> Arraste a tabela para o lado para ver
+          todos os dias
+        </div>
+        <div class="table-container">
+          <table id="tabelaEscala" class="min-w-full border-collapse">
+            <thead>
+              <tr class="bg-gray-100 border-b-2 border-gray-300">
+                <th class="py-3 px-4 border text-left col-fixa-nome">
+                  Funcionário
+                </th>
+                <th class="py-3 px-4 border text-left col-fixa-posicao">
+                  Posição hoje
+                </th>
+                <th class="py-3 px-4 border text-center">Segunda</th>
+                <th class="py-3 px-4 border text-center">Terça</th>
+                <th class="py-3 px-4 border text-center">Quarta</th>
+                <th class="py-3 px-4 border text-center">Quinta</th>
+                <th class="py-3 px-4 border text-center">Sexta</th>
+                <th class="py-3 px-4 border text-center">Sábado</th>
+                <th class="py-3 px-4 border text-center">Domingo</th>
+              </tr>
+            </thead>
+            <tbody id="corpoEscala"></tbody>
+          </table>
+        </div>
+        <div id="avisoVagas" class="p-3 text-sm"></div>
+        <p class="text-xs text-gray-500 p-3">
+          SACA CHIPADA = vaga extra absorvida por quem sobrar na fila do
+          revezamento. APOIO/RESERVA = sobra além disso, sem posição fixa.
+          VAGA/BLOQ. = posição sem ninguém disponível devido a
+          folgas/restrições.
+          <span class="font-semibold text-jtazul">Azul</span> = atribuição
+          manual fixa.
+          <span class="font-semibold" style="color: #d81e20"
+            >Vermelho/Amarelo</span
+          >
+          = coluna do dia da data selecionada.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY_EMP = "jt_funcionarios_v1";
+      const STORAGE_KEY_FOLGAS = "jt_folgas_v1";
+      const STORAGE_KEY_OBS = "jt_observacoes_v1";
+      const STORAGE_KEY_POS = "jt_posicoes_v1";
+      const STORAGE_KEY_ATRIB = "jt_atribuicoes_v1";
+      const STORAGE_KEY_FOLGA_DOM = "jt_folgas_domingo_v1";
+
+      const posicoesPadrao = [
+        "B1",
+        "GAIOLA E B1 F8",
+        "B2",
+        "ESTEIRA / COMEÇO F1",
+        "ESTEIRA / MEIO F2",
+        "ESTEIRA / MEIO F3",
+        "ESTEIRA / MEIO F4",
+        "ESTEIRA / FIM F5",
+        "ESTEIRA / FIM F6",
+        "DESCARREGAMENTO F7",
+        "DESCARREGAMENTO F7",
+      ];
+
+      const diasOrdem = [
+        "segunda",
+        "terca",
+        "quarta",
+        "quinta",
+        "sexta",
+        "sabado",
+      ];
+      const diasLabel = {
+        segunda: "Segunda",
+        terca: "Terça",
+        quarta: "Quarta",
+        quinta: "Quinta",
+        sexta: "Sexta",
+        sabado: "Sábado",
+        domingo: "Domingo",
+        todos: "Todos os dias",
+      };
+
+      // Mapeia o valor de Date.getDay() (0=domingo...6=sábado) para o índice da coluna na tabela
+      // Colunas da tabela: 0=Funcionário, 1=Posição hoje, 2=Segunda, 3=Terça, 4=Quarta, 5=Quinta, 6=Sexta, 7=Sábado, 8=Domingo
+      const mapaColunaPorGetDay = { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 0: 8 };
+
+      // Mapeia o valor de Date.getDay() para a chave do dia usada em folgasSemana/diasOrdem (domingo não tem chave)
+      const mapaDiaChavePorGetDay = {
+        1: "segunda",
+        2: "terca",
+        3: "quarta",
+        4: "quinta",
+        5: "sexta",
+        6: "sabado",
+        0: null,
+      };
+
+      const funcionariosPadrao = [
+        { nome: "FRANCINALDO DE LIRA", tipo: "ferias" },
+        { nome: "JENKY HERLY", tipo: "fixo", posicaoFixa: "DEVOLUÇÃO" },
+        {
+          nome: "AURELIO DIAS CUMPERTINO",
+          tipo: "fixo",
+          posicaoFixa: "QUALIDADE",
+        },
+        {
+          nome: "WANDERSON SILVA",
+          tipo: "fixo",
+          posicaoFixa: "ASSISTENTE OPERACIONAL",
+        },
+        { nome: "FERNANDO RUFINO DE JESUS", tipo: "rotativo" },
+        { nome: "EMERSON BOAVENTURA", tipo: "rotativo" },
+        { nome: "MATHEUS HENRIQUE", tipo: "rotativo" },
+        { nome: "MANOEL DA CONCEIÇÃO", tipo: "rotativo" },
+        { nome: "IURI ALVES ROCHA", tipo: "rotativo" },
+        { nome: "JEFERSON RICARDO", tipo: "rotativo" },
+        { nome: "HIGOR EMANUEL", tipo: "rotativo" },
+        { nome: "CARLOS", tipo: "rotativo" },
+        { nome: "EVALDO PEREIRA DA SILVA", tipo: "rotativo" },
+        { nome: "RAFAEL OLIVEIRA COSTA", tipo: "rotativo" },
+        { nome: "CLAUDISSON FARIAS SANTOS", tipo: "rotativo" },
+        { nome: "ANTONIO ADENIL SON BARBOSA DA SILVA", tipo: "rotativo" },
+        { nome: "INACIO SOARES SILVA JUNIOR", tipo: "rotativo" },
+        { nome: "KELTO AGAMENON", tipo: "rotativo" },
+      ];
+
+      const folgasPadrao = {
+        segunda: [
+          "ANTONIO ADENIL SON BARBOSA DA SILVA",
+          "INACIO SOARES SILVA JUNIOR",
+          "KELTO AGAMENON",
+        ],
+        terca: [
+          "FERNANDO RUFINO DE JESUS",
+          "MATHEUS HENRIQUE",
+          "AURELIO DIAS CUMPERTINO",
+        ],
+        quarta: ["JEFERSON RICARDO", "CARLOS"],
+        quinta: ["IURI ALVES ROCHA", "HIGOR EMANUEL"],
+        sexta: [
+          "MANOEL DA CONCEIÇÃO",
+          "EVALDO PEREIRA DA SILVA",
+          "CLAUDISSON FARIAS SANTOS",
+          "JENKY HERLY",
+        ],
+        sabado: ["EMERSON BOAVENTURA", "WANDERSON SILVA"],
+      };
+
+      let funcionarios = carregarLS(STORAGE_KEY_EMP, funcionariosPadrao);
+      let folgasSemana = carregarLS(STORAGE_KEY_FOLGAS, folgasPadrao);
+      let observacoes = carregarLS(STORAGE_KEY_OBS, []);
+      let posicoesRotativas = carregarLS(STORAGE_KEY_POS, posicoesPadrao);
+      let atribuicoesManuais = carregarLS(STORAGE_KEY_ATRIB, []);
+      let folgasDomingo = carregarLS(STORAGE_KEY_FOLGA_DOM, []);
+      function posicoesUnicas() {
+        return [...new Set(posicoesRotativas)];
+      }
+
+      function carregarLS(chave, padrao) {
+        try {
+          const salvo = localStorage.getItem(chave);
+          return salvo ? JSON.parse(salvo) : JSON.parse(JSON.stringify(padrao));
+        } catch (e) {
+          return JSON.parse(JSON.stringify(padrao));
+        }
+      }
+      function salvarLS(chave, valor) {
+        localStorage.setItem(chave, JSON.stringify(valor));
+      }
+
+      // ---------- Gestão de funcionários ----------
+      document.getElementById("novoTipo").addEventListener("change", (e) => {
+        document
+          .getElementById("posicaoFixaWrapper")
+          .classList.toggle("hidden", e.target.value !== "fixo");
+      });
+
+      document.getElementById("btnAdicionar").addEventListener("click", () => {
+        const nome = document
+          .getElementById("novoNome")
+          .value.trim()
+          .toUpperCase();
+        const tipo = document.getElementById("novoTipo").value;
+        const posicaoFixa = document
+          .getElementById("novaPosicaoFixa")
+          .value.trim()
+          .toUpperCase();
+        if (!nome) {
+          alert("Digite o nome do funcionário.");
+          return;
+        }
+        if (funcionarios.some((f) => f.nome === nome)) {
+          alert("Já existe um funcionário com esse nome.");
+          return;
+        }
+        const novo = { nome, tipo };
+        if (tipo === "fixo") novo.posicaoFixa = posicaoFixa || "A DEFINIR";
+        funcionarios.push(novo);
+        salvarLS(STORAGE_KEY_EMP, funcionarios);
+        document.getElementById("novoNome").value = "";
+        document.getElementById("novaPosicaoFixa").value = "";
+        renderizarTudo();
+      });
+
+      function removerFuncionario(nome) {
+        if (!confirm(`Remover ${nome} da escala?`)) return;
+        funcionarios = funcionarios.filter((f) => f.nome !== nome);
+        diasOrdem.forEach((d) => {
+          folgasSemana[d] = (folgasSemana[d] || []).filter((n) => n !== nome);
+        });
+        observacoes = observacoes.filter((o) => o.nome !== nome);
+        atribuicoesManuais = atribuicoesManuais.filter((a) => a.nome !== nome);
+        folgasDomingo = folgasDomingo.filter((n) => n !== nome);
+        salvarLS(STORAGE_KEY_FOLGA_DOM, folgasDomingo);
+        salvarLS(STORAGE_KEY_EMP, funcionarios);
+        salvarLS(STORAGE_KEY_FOLGAS, folgasSemana);
+        salvarLS(STORAGE_KEY_OBS, observacoes);
+        salvarLS(STORAGE_KEY_ATRIB, atribuicoesManuais);
+        renderizarTudo();
+      }
+
+      // ---------- Gestão de posições ----------
+      document
+        .getElementById("btnAdicionarPosicao")
+        .addEventListener("click", () => {
+          const nome = document
+            .getElementById("novaPosicao")
+            .value.trim()
+            .toUpperCase();
+          if (!nome) {
+            alert("Digite o nome da posição.");
+            return;
+          }
+          posicoesRotativas.push(nome);
+          salvarLS(STORAGE_KEY_POS, posicoesRotativas);
+          document.getElementById("novaPosicao").value = "";
+          renderizarTudo();
+        });
+
+      function removerPosicao(indice) {
+        const nomePos = posicoesRotativas[indice];
+        if (!confirm(`Remover a posição "${nomePos}"?`)) return;
+        posicoesRotativas.splice(indice, 1);
+        salvarLS(STORAGE_KEY_POS, posicoesRotativas);
+        renderizarTudo();
+      }
+
+      function renderizarPosicoes() {
+        const lista = document.getElementById("listaPosicoes");
+        lista.innerHTML = "";
+        posicoesRotativas.forEach((pos, i) => {
+          const chip = document.createElement("span");
+          chip.className =
+            "inline-flex items-center gap-2 bg-gray-100 border rounded-full px-3 py-1 text-sm";
+          chip.innerHTML = `${pos} <button class="text-red-600 hover:text-red-800" title="Remover"><i class="fa fa-times-circle"></i></button>`;
+          chip
+            .querySelector("button")
+            .addEventListener("click", () => removerPosicao(i));
+          lista.appendChild(chip);
+        });
+      }
+
+      // ---------- Atribuição manual ----------
+      function preencherSelectsAtrib() {
+        const selFunc = document.getElementById("atribFuncionario");
+        selFunc.innerHTML = funcionarios
+          .filter((f) => f.tipo !== "ferias")
+          .map((f) => `<option value="${f.nome}">${f.nome}</option>`)
+          .join("");
+
+        const selPos = document.getElementById("atribPosicao");
+        selPos.innerHTML =
+          posicoesUnicas()
+            .map((p) => `<option value="${p}">${p}</option>`)
+            .join("") + `<option value="SACA CHIPADA">SACA CHIPADA</option>`;
+      }
+
+      document
+        .getElementById("btnAdicionarAtrib")
+        .addEventListener("click", () => {
+          const nome = document.getElementById("atribFuncionario").value;
+          const posicao = document.getElementById("atribPosicao").value;
+          const dia = document.getElementById("atribDia").value;
+          if (!nome || !posicao) {
+            alert("Selecione funcionário e posição.");
+            return;
+          }
+          atribuicoesManuais.push({ id: Date.now(), nome, posicao, dia });
+          salvarLS(STORAGE_KEY_ATRIB, atribuicoesManuais);
+          renderizarAtribuicoes();
+          gerarEscala();
+        });
+
+      function removerAtribuicao(id) {
+        atribuicoesManuais = atribuicoesManuais.filter((a) => a.id !== id);
+        salvarLS(STORAGE_KEY_ATRIB, atribuicoesManuais);
+        renderizarAtribuicoes();
+        gerarEscala();
+      }
+
+      function renderizarAtribuicoes() {
+        const corpo = document.getElementById("corpoAtribuicoes");
+        corpo.innerHTML = "";
+        atribuicoesManuais.forEach((a) => {
+          const tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-gray-50";
+          tr.innerHTML = `
+                    <td class="py-2 px-3 border">${a.nome}</td>
+                    <td class="py-2 px-3 border">${a.posicao}</td>
+                    <td class="py-2 px-3 border">${diasLabel[a.dia]}</td>
+                    <td class="py-2 px-3 border text-center">
+                        <button class="text-red-600 hover:text-red-800 font-semibold" data-id="${a.id}">
+                            <i class="fa fa-trash"></i> Remover
+                        </button>
+                    </td>`;
+          tr.querySelector("button").addEventListener("click", () =>
+            removerAtribuicao(a.id),
+          );
+          corpo.appendChild(tr);
+        });
+      }
+
+      function renderizarFuncionarios() {
+        const corpo = document.getElementById("corpoFuncionarios");
+        corpo.innerHTML = "";
+        funcionarios.forEach((f) => {
+          const tipoLabel =
+            f.tipo === "rotativo"
+              ? "Rotativo"
+              : f.tipo === "fixo"
+                ? "Fixo"
+                : "Férias/Afastado";
+          const tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-gray-50";
+          tr.innerHTML = `
+                    <td class="py-2 px-3 border font-medium">${f.nome}</td>
+                    <td class="py-2 px-3 border">${tipoLabel}</td>
+                    <td class="py-2 px-3 border">${f.tipo === "fixo" ? f.posicaoFixa : "-"}</td>
+                    <td class="py-2 px-3 border text-center">
+                        <button class="text-red-600 hover:text-red-800 font-semibold" data-nome="${f.nome}">
+                            <i class="fa fa-trash"></i> Remover
+                        </button>
+                    </td>`;
+          tr.querySelector("button").addEventListener("click", () =>
+            removerFuncionario(f.nome),
+          );
+          corpo.appendChild(tr);
+        });
+      }
+
+      // ---------- Folgas da semana ----------
+      function renderizarFolgasGrid() {
+        const grid = document.getElementById("folgasGrid");
+        grid.innerHTML = "";
+        diasOrdem.forEach((dia) => {
+          const box = document.createElement("div");
+          box.className = "border rounded p-2";
+          const lista = funcionarios
+            .filter((f) => f.tipo !== "ferias")
+            .map((f) => {
+              const marcado = (folgasSemana[dia] || []).includes(f.nome);
+              return `<label class="flex items-center gap-1 text-xs mb-1">
+                            <input type="checkbox" data-dia="${dia}" data-nome="${f.nome}" ${marcado ? "checked" : ""}>
+                            ${f.nome}
+                        </label>`;
+            })
+            .join("");
+          box.innerHTML = `<div class="font-bold text-sm mb-1">${diasLabel[dia]}</div>${lista}`;
+          grid.appendChild(box);
+        });
+        grid.querySelectorAll("input[type=checkbox]").forEach((cb) => {
+          cb.addEventListener("change", (e) => {
+            const dia = e.target.dataset.dia;
+            const nome = e.target.dataset.nome;
+            folgasSemana[dia] = folgasSemana[dia] || [];
+            if (e.target.checked) {
+              if (!folgasSemana[dia].includes(nome))
+                folgasSemana[dia].push(nome);
+            } else {
+              folgasSemana[dia] = folgasSemana[dia].filter((n) => n !== nome);
+            }
+            salvarLS(STORAGE_KEY_FOLGAS, folgasSemana);
+            gerarEscala();
+          });
+        });
+      }
+
+      // ---------- Folgas manuais de Domingo (não tem revezamento automático) ----------
+      function renderizarFolgasDomingoGrid() {
+        const grid = document.getElementById("folgasDomingoGrid");
+        grid.innerHTML = "";
+        funcionarios
+          .filter((f) => f.tipo !== "ferias")
+          .forEach((f) => {
+            const marcado = folgasDomingo.includes(f.nome);
+            const label = document.createElement("label");
+            label.className = "flex items-center gap-1 text-xs mb-1";
+            label.innerHTML = `<input type="checkbox" data-nome="${f.nome}" ${marcado ? "checked" : ""}> ${f.nome}`;
+            grid.appendChild(label);
+          });
+        grid.querySelectorAll("input[type=checkbox]").forEach((cb) => {
+          cb.addEventListener("change", (e) => {
+            const nome = e.target.dataset.nome;
+            if (e.target.checked) {
+              if (!folgasDomingo.includes(nome)) folgasDomingo.push(nome);
+            } else {
+              folgasDomingo = folgasDomingo.filter((n) => n !== nome);
+            }
+            salvarLS(STORAGE_KEY_FOLGA_DOM, folgasDomingo);
+            gerarEscala();
+          });
+        });
+      }
+
+      // ---------- Observações / Restrições ----------
+      function preencherSelectsObs() {
+        const selFunc = document.getElementById("obsFuncionario");
+        selFunc.innerHTML = funcionarios
+          .filter((f) => f.tipo !== "ferias")
+          .map((f) => `<option value="${f.nome}">${f.nome}</option>`)
+          .join("");
+
+        const selPos = document.getElementById("obsPosicao");
+        selPos.innerHTML =
+          posicoesUnicas()
+            .map((p) => `<option value="${p}">${p}</option>`)
+            .join("") + `<option value="SACA CHIPADA">SACA CHIPADA</option>`;
+      }
+
+      document
+        .getElementById("btnAdicionarObs")
+        .addEventListener("click", () => {
+          const nome = document.getElementById("obsFuncionario").value;
+          const posicao = document.getElementById("obsPosicao").value;
+          const dia = document.getElementById("obsDia").value;
+          let texto = document.getElementById("obsTexto").value.trim();
+          if (!nome || !posicao) {
+            alert("Selecione funcionário e posição.");
+            return;
+          }
+          if (!texto)
+            texto = `${nome} não vai para ${posicao} (${diasLabel[dia]})`;
+          observacoes.push({ id: Date.now(), nome, posicao, dia, texto });
+          salvarLS(STORAGE_KEY_OBS, observacoes);
+          document.getElementById("obsTexto").value = "";
+          renderizarObservacoes();
+          gerarEscala();
+        });
+
+      function removerObservacao(id) {
+        observacoes = observacoes.filter((o) => o.id !== id);
+        salvarLS(STORAGE_KEY_OBS, observacoes);
+        renderizarObservacoes();
+        gerarEscala();
+      }
+
+      function renderizarObservacoes() {
+        const corpo = document.getElementById("corpoObservacoes");
+        corpo.innerHTML = "";
+        observacoes.forEach((o) => {
+          const tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-gray-50";
+          tr.innerHTML = `
+                    <td class="py-2 px-3 border">${o.nome}</td>
+                    <td class="py-2 px-3 border">${o.posicao}</td>
+                    <td class="py-2 px-3 border">${diasLabel[o.dia]}</td>
+                    <td class="py-2 px-3 border">${o.texto}</td>
+                    <td class="py-2 px-3 border text-center">
+                        <button class="text-red-600 hover:text-red-800 font-semibold" data-id="${o.id}">
+                            <i class="fa fa-trash"></i> Remover
+                        </button>
+                    </td>`;
+          tr.querySelector("button").addEventListener("click", () =>
+            removerObservacao(o.id),
+          );
+          corpo.appendChild(tr);
+        });
+      }
+
+      function estaBloqueado(nome, posicao, diaChave) {
+        return observacoes.some(
+          (o) =>
+            o.nome === nome &&
+            o.posicao === posicao &&
+            (o.dia === "todos" || o.dia === diaChave),
+        );
+      }
+
+      // ---------- Lógica de revezamento ----------
+      function montarAtribuicoesDoDia(diaChave) {
+        const atribuicoes = {};
+        const vagasHoje = [];
+        const folgaHoje = folgasSemana[diaChave] || [];
+
+        const fixos = funcionarios.filter((f) => f.tipo === "fixo");
+        const ferias = funcionarios.filter((f) => f.tipo === "ferias");
+        const rotativos = funcionarios.filter((f) => f.tipo === "rotativo");
+
+        ferias.forEach(
+          (f) =>
+            (atribuicoes[f.nome] = { texto: "FÉRIAS", classe: "ferias-texto" }),
+        );
+
+        fixos.forEach((f) => {
+          if (folgaHoje.includes(f.nome))
+            atribuicoes[f.nome] = { texto: "FOLGA", classe: "folga-texto" };
+          else if (estaBloqueado(f.nome, f.posicaoFixa, diaChave))
+            atribuicoes[f.nome] = { texto: "BLOQ.", classe: "vaga-texto" };
+          else atribuicoes[f.nome] = { texto: f.posicaoFixa, classe: "" };
+        });
+
+        const disponiveis = rotativos.filter(
+          (f) => !folgaHoje.includes(f.nome),
+        );
+        rotativos
+          .filter((f) => folgaHoje.includes(f.nome))
+          .forEach((f) => {
+            atribuicoes[f.nome] = { texto: "FOLGA", classe: "folga-texto" };
+          });
+
+        // posições ainda livres para o sorteio (começa com todas; atribuições manuais retiram uma a uma)
+        let posicoesLivres = [...posicoesRotativas];
+        let pool = [...disponiveis];
+
+        // aplica atribuições manuais (forçadas) primeiro
+        const atribsHoje = atribuicoesManuais.filter(
+          (a) => a.dia === "todos" || a.dia === diaChave,
+        );
+        atribsHoje.forEach((a) => {
+          const pessoa = pool.find((f) => f.nome === a.nome);
+          if (!pessoa) return; // pessoa de folga ou não rotativa hoje, ignora
+          if (a.posicao === "SACA CHIPADA") {
+            atribuicoes[a.nome] = {
+              texto: "SACA CHIPADA",
+              classe: "manual-texto",
+            };
+            pool = pool.filter((f) => f.nome !== a.nome);
+            return;
+          }
+          const idxPos = posicoesLivres.indexOf(a.posicao);
+          if (idxPos === -1) return; // posição já ocupada por outra atribuição manual
+          atribuicoes[a.nome] = { texto: a.posicao, classe: "manual-texto" };
+          posicoesLivres.splice(idxPos, 1);
+          pool = pool.filter((f) => f.nome !== a.nome);
+        });
+
+        // desloca a ordem do pool conforme o dia, pra variar quem pega qual posição
+        const offset =
+          pool.length > 0 ? diasOrdem.indexOf(diaChave) % pool.length : 0;
+        const poolRotacionado = pool.map(
+          (_, i) => pool[(i + offset) % pool.length],
+        );
+
+        // quem sobrar das posições livres vai para SACA CHIPADA (o primeiro da fila que não esteja bloqueado nessa posição); o restante vira APOIO/RESERVA
+        let saca = atribsHoje.some((a) => a.posicao === "SACA CHIPADA")
+          ? "ocupada"
+          : null;
+        if (!saca && poolRotacionado.length > posicoesLivres.length) {
+          const candidatos = poolRotacionado.slice(posicoesLivres.length);
+          const idxSaca = candidatos.findIndex(
+            (f) => !estaBloqueado(f.nome, "SACA CHIPADA", diaChave),
+          );
+          if (idxSaca !== -1) {
+            saca = candidatos[idxSaca];
+            const idxNoPool = poolRotacionado.indexOf(saca);
+            poolRotacionado.splice(idxNoPool, 1);
+          }
+        }
+
+        // preenche cada posição livre respeitando bloqueios: pega o primeiro disponível na fila que não esteja bloqueado para aquela posição
+        const restante = [...poolRotacionado];
+        posicoesLivres.forEach((pos) => {
+          const idx = restante.findIndex(
+            (f) => !estaBloqueado(f.nome, pos, diaChave),
+          );
+          if (idx !== -1) {
+            const pessoa = restante.splice(idx, 1)[0];
+            atribuicoes[pessoa.nome] = { texto: pos, classe: "" };
+          } else {
+            vagasHoje.push(pos);
+          }
+        });
+
+        // sobras: apoio/reserva
+        restante.forEach((f) => {
+          atribuicoes[f.nome] = {
+            texto: "APOIO/RESERVA",
+            classe: "apoio-texto",
+          };
+        });
+
+        if (saca && saca !== "ocupada")
+          atribuicoes[saca.nome] = {
+            texto: "SACA CHIPADA",
+            classe: "saca-texto",
+          };
+
+        return { atribuicoes, vagasHoje };
+      }
+
+      function formatarData(dataIso) {
+        const diasSemanaExibicao = [
+          "domingo",
+          "segunda-feira",
+          "terça-feira",
+          "quarta-feira",
+          "quinta-feira",
+          "sexta-feira",
+          "sábado",
+        ];
+        const data = new Date(dataIso + "T00:00:00");
+        const dia = String(data.getDate()).padStart(2, "0");
+        const mes = String(data.getMonth() + 1).padStart(2, "0");
+        const ano = data.getFullYear();
+        return {
+          dataFormatada: `${dia}/${mes}/${ano}`,
+          diaSemanaTexto: diasSemanaExibicao[data.getDay()],
+          getDayIndex: data.getDay(),
+        };
+      }
+
+      // Destaca a coluna do dia correspondente à data selecionada (cabeçalho + todas as células daquela coluna)
+      function destacarColunaSelecionada(getDayIndex) {
+        const colIndex = mapaColunaPorGetDay[getDayIndex];
+        const tabela = document.getElementById("tabelaEscala");
+        if (!tabela || colIndex === undefined) return;
+
+        // limpa destaques anteriores
+        tabela.querySelectorAll("th, td").forEach((el) => {
+          el.classList.remove("col-destaque-header", "col-destaque-cel");
+        });
+
+        // cabeçalho
+        const linhaCabecalho = tabela.querySelector("thead tr");
+        if (linhaCabecalho && linhaCabecalho.children[colIndex]) {
+          linhaCabecalho.children[colIndex].classList.add(
+            "col-destaque-header",
+          );
+        }
+
+        // células do corpo
+        tabela.querySelectorAll("tbody tr").forEach((tr) => {
+          if (tr.children[colIndex]) {
+            tr.children[colIndex].classList.add("col-destaque-cel");
+          }
+        });
+      }
+
+      function gerarEscala() {
+        const dataInput = document.getElementById("dataEscala").value;
+        const setor = document.getElementById("setor").value;
+        const { dataFormatada, diaSemanaTexto, getDayIndex } =
+          formatarData(dataInput);
+
+        document.getElementById("mostraSetor").textContent = setor;
+        document.getElementById("mostraData").textContent = dataFormatada;
+        document.getElementById("mostraDiaSemana").textContent = diaSemanaTexto;
+
+        const resultadoPorDia = {};
+        let todasVagas = [];
+        diasOrdem.forEach((d) => {
+          const r = montarAtribuicoesDoDia(d);
+          resultadoPorDia[d] = r.atribuicoes;
+          if (r.vagasHoje.length)
+            todasVagas.push(`${diasLabel[d]}: ${r.vagasHoje.join(", ")}`);
+        });
+
+        const corpo = document.getElementById("corpoEscala");
+        corpo.innerHTML = "";
+
+        const diaChaveSelecionado = mapaDiaChavePorGetDay[getDayIndex];
+        const atribuicoesHoje = diaChaveSelecionado
+          ? resultadoPorDia[diaChaveSelecionado]
+          : {};
+
+        function celulaPosicaoHoje(func) {
+          if (!diaChaveSelecionado) {
+            if (folgasDomingo.includes(func.nome)) {
+              return `<span class="posicao-hoje-texto folga-texto">FOLGA</span>`;
+            }
+            return `<span class="text-gray-400 text-xs italic">Manual</span>`;
+          }
+          const a = atribuicoesHoje[func.nome];
+          if (!a) return "";
+          return `<span class="posicao-hoje-texto ${a.classe}">${a.texto}</span>`;
+        }
+
+        function montarLinha(func) {
+          const tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-gray-50";
+          let celulas = "";
+          diasOrdem.forEach((d) => {
+            const a = resultadoPorDia[d][func.nome] || {
+              texto: "",
+              classe: "",
+            };
+            celulas += `<td class="py-2 px-3 border text-center text-xs ${a.classe}">${a.texto}</td>`;
+          });
+          if (folgasDomingo.includes(func.nome)) {
+            celulas += `<td class="py-2 px-3 border text-center text-xs folga-texto">FOLGA</td>`;
+          } else {
+            celulas += `<td class="py-2 px-3 border text-center text-xs text-gray-400 italic">manual</td>`;
+          }
+          tr.innerHTML = `<td class="py-2 px-3 border font-medium col-fixa-nome">${func.nome}</td>
+                    <td class="py-2 px-3 border text-center col-fixa-posicao">${celulaPosicaoHoje(func)}</td>${celulas}`;
+          return tr;
+        }
+
+        function linhaSeparadora() {
+          const tr = document.createElement("tr");
+          tr.className = "linha-separador";
+          tr.innerHTML = `<td colspan="9"></td>`;
+          return tr;
+        }
+
+        // 1) Férias
+        const ferias = funcionarios.filter((f) => f.tipo === "ferias");
+        ferias.forEach((f) => corpo.appendChild(montarLinha(f)));
+
+        // 2) Rotativos: ordenados pela posição fixa (ordem de posicoesRotativas) usando a atribuição do dia selecionado
+        const rotativos = funcionarios.filter((f) => f.tipo === "rotativo");
+        let rotativosComPosicao = [];
+        let rotativosExtras = []; // SACA CHIPADA / APOIO / RESERVA
+        let rotativosFolgaHoje = []; // vão para a seção DSR DE HOJE
+
+        if (diaChaveSelecionado) {
+          rotativos.forEach((f) => {
+            const a = atribuicoesHoje[f.nome];
+            const texto = a ? a.texto : "";
+            if (texto === "FOLGA") {
+              rotativosFolgaHoje.push(f);
+            } else if (posicoesRotativas.includes(texto)) {
+              rotativosComPosicao.push(f);
+            } else {
+              // SACA CHIPADA, APOIO/RESERVA, BLOQ. ou vazio
+              rotativosExtras.push(f);
+            }
+          });
+          // ordena pela posição fixa (índice em posicoesRotativas); mantém ordem original como desempate
+          rotativosComPosicao.sort((a, b) => {
+            const idxA = posicoesRotativas.indexOf(
+              atribuicoesHoje[a.nome].texto,
+            );
+            const idxB = posicoesRotativas.indexOf(
+              atribuicoesHoje[b.nome].texto,
+            );
+            return idxA - idxB;
+          });
+        } else {
+          // domingo: sem revezamento automático, mas separa quem está marcado como folga manual de domingo
+          rotativos.forEach((f) => {
+            if (folgasDomingo.includes(f.nome)) {
+              rotativosFolgaHoje.push(f);
+            } else {
+              rotativosComPosicao.push(f);
+            }
+          });
+        }
+
+        rotativosComPosicao.forEach((f) => corpo.appendChild(montarLinha(f)));
+        rotativosExtras.forEach((f) => corpo.appendChild(montarLinha(f)));
+
+        // 3) Fixos (sempre no bloco próprio, mesmo se estiverem de folga hoje)
+        const fixos = funcionarios.filter((f) => f.tipo === "fixo");
+        if (fixos.length) {
+          corpo.appendChild(linhaSeparadora());
+          fixos.forEach((f) => corpo.appendChild(montarLinha(f)));
+        }
+
+        // 4) Seção "DSR DE HOJE" (quem está de folga no dia selecionado, incluindo domingo manual)
+        if (rotativosFolgaHoje.length) {
+          corpo.appendChild(linhaSeparadora());
+          const trCabecalho = document.createElement("tr");
+          trCabecalho.className = "linha-dsr-cabecalho";
+          const rotuloDia = diaChaveSelecionado
+            ? diasLabel[diaChaveSelecionado]
+            : diasLabel.domingo;
+          trCabecalho.innerHTML = `<td colspan="9" class="py-2 border">DSR DE HOJE — ${rotuloDia.toUpperCase()}</td>`;
+          corpo.appendChild(trCabecalho);
+          rotativosFolgaHoje.forEach((f) => corpo.appendChild(montarLinha(f)));
+        }
+
+        const aviso = document.getElementById("avisoVagas");
+        if (todasVagas.length) {
+          aviso.innerHTML = `<span class="vaga-texto">⚠ Posições sem ninguém disponível (devido a folgas + restrições): ${todasVagas.join(" | ")}</span>`;
+        } else {
+          aviso.innerHTML = "";
+        }
+
+        // aplica o destaque na coluna do dia da data selecionada, após a tabela estar montada
+        destacarColunaSelecionada(getDayIndex);
+      }
+
+      function renderizarTudo() {
+        renderizarFuncionarios();
+        renderizarFolgasGrid();
+        renderizarFolgasDomingoGrid();
+        renderizarPosicoes();
+        preencherSelectsObs();
+        renderizarObservacoes();
+        preencherSelectsAtrib();
+        renderizarAtribuicoes();
+        gerarEscala();
+      }
+
+      window.onload = renderizarTudo;
+      document
+        .getElementById("gerarEscala")
+        .addEventListener("click", gerarEscala);
+    </script>
+  </body>
+</html>
